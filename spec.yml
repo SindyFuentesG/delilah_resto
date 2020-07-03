@@ -1,0 +1,755 @@
+swagger: "2.0"
+info:
+  description: "This is the documentation to use Delilah Restó's API. The purpose of this API is managing a restaurant."
+  version: "1.0.0"
+  title: "Delilah Restó"
+  termsOfService: "http://delilahrestobysindytfg/terms/"
+  contact:
+    email: "delilahrestoapi@gmail.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost:8080"
+basePath: "/v1"
+tags:
+- name: "products"
+  description: "Everything about the available products in the restaurant"
+- name: "orders"
+  description: "Access to the restaurant orders"
+- name: "user"
+  description: "Operations about user"
+schemes:
+- "https"
+- "http"
+paths:
+  /products:
+    post:
+      tags:
+      - "products"
+      summary: "Add a new product to the restaurant"
+      description: ""
+      operationId: "addProduct"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "header"
+        name: "authorization"
+        description: "Authentication Token"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Product object that needs to be added to the restaurant"
+        required: true
+        schema:
+          $ref: "#/definitions/Product"
+      responses:
+        200:
+          description: "Created"
+          schema:
+            type: "object"
+            properties:
+              productId:
+                type: "number"
+                example: 30
+        400:
+          description: "Missing or wrong arguments"
+          schema:
+            type: "object"
+            properties:
+              error:
+                type: "string"
+                example: "The name of product is required"
+        401:
+          description: "Token has expired, please login again"
+        403:
+          description: "Forbidden"
+      security:
+      - resto_auth:
+        - "write:products"
+    get:
+      tags:
+      - "products"
+      summary: "Finds all products in the restaurant"
+      description: ""
+      operationId: "getProducts"
+      produces:
+      - "application/json"
+      parameters: 
+      - in: "header"
+        name: "authorization"
+        description: "Authentication Token"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Product_Created"
+        204:
+          description: "No content"
+      security:
+      - resto_auth:
+        - "read:products"
+  /products/{productId}:
+    put:
+      tags:
+      - "products"
+      summary: "Update an existing product"
+      description: ""
+      operationId: "updateProduct"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "productId"
+        description: "Product id to update"
+        required: true
+        type: "integer"
+        format: "int64"
+      - in: "header"
+        name: "authorization"
+        description: "Authentication Token"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Properties that need to be update in the product"
+        required: true
+        schema:
+          $ref: "#/definitions/Product"
+      responses:
+        200:
+          description: "Updated"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Product not found"
+        401:
+          description: "Token has expired, please login again"
+        403:
+          description: "Forbidden"
+      security:
+      - resto_auth:
+        - "write:products"
+    delete:
+      tags: 
+        - "products"
+      summary: "Delete an existing product" 
+      description: ""
+      operationId: "deleteProduct"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "productId"
+        description: "Product id to delete"
+        required: true
+        type: "integer"
+        format: "int64"
+      - in: "header"
+        name: "authorization"
+        description: "Authentication Token"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Deleted"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Product not found"
+        409:
+          description: "Product associated with one or more orders"
+        401:
+          description: "Token has expired, please login again"
+        403:
+          description: "Forbidden"
+      security:
+      - resto_auth:
+        - "write:products"
+  /products/favorites/{idUser}:
+    get:
+      tags:
+      - "products"
+      summary: "Finds the favorite products by user"
+      description: ""
+      operationId: "favoritesByUser"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "idUser"
+        description: "User id"
+        required: true
+        type: "integer"
+        format: "int64"
+      - in: "header"
+        name: "authorization"
+        description: "Authentication Token"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Product_Created"
+        204:
+          description: "No content"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "User not found"
+      security:
+      - resto_auth:
+        - "read:products"
+  /orders:
+    get:
+      tags:
+        - "orders"
+      summary: "Finds all products in the restaurant"
+      description: ""
+      operationId: "getOrders"
+      produces:
+      - "application/json"
+      parameters: 
+      - in: "header"
+        name: "authorization"
+        description: "Authentication Token"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: '#/definitions/Orders_Created'
+        204:
+          description: "No content"
+      security:
+      - resto_auth:
+        - "read:orders"
+    
+    post:
+      tags:
+      - "orders"
+      summary: "Add new order to the restaurant"
+      description: ""
+      operationId: "addOrder"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "header"
+        name: "authorization"
+        description: "Authentication Token"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Order object that needs to be added to the restaurant"
+        required: true
+        schema:
+          $ref: '#/definitions/Order_New'
+      responses:
+        200:
+          description: "Created"
+          schema:
+            type: "object"
+            properties:
+              orderId:
+                type: "number"
+                example: 12
+        404:
+          description: "User not Found"
+        400:
+          description: "Missing or wrong arguments"
+          schema:
+            type: "object"
+            properties:
+              error:
+                type: "string"
+                example: "user_id is required"
+        401:
+          description: "Token has expired, please login again"
+        403:
+          description: "Forbidden"
+      security:
+      - resto_auth:
+        - "write:orders"
+        
+  /orders/{orderId}:
+    put:
+      tags:
+      - "orders"
+      summary: "Update status of an existing order"
+      description: ""
+      operationId: "updateOrder"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "orderId"
+        description: "Order id to update"
+        required: true
+        type: "integer"
+        format: "int64"
+      - in: "header"
+        name: "authorization"
+        description: "Authentication Token"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Order status that needs to be update"
+        required: true
+        schema:
+          $ref: "#/definitions/Order_Status"
+      responses:
+        200:
+          description: "Updated"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Order not found"
+        401:
+          description: "Token has expired, please login again"
+        403:
+          description: "Forbidden"
+        405:
+          description: "Invalid status"
+      security:
+      - resto_auth:
+        - "write:orders"
+        
+    delete:
+      tags: 
+        - "orders"
+      summary: "Delete an existing order" 
+      description: ""
+      operationId: "deleteOrder"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "orderId"
+        description: "Order id to delete"
+        required: true
+        type: "integer"
+        format: "int64"
+      - in: "header"
+        name: "authorization"
+        description: "Authentication Token"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Deleted"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Order not found"
+        401:
+          description: "Token has expired, please login again"
+        403:
+          description: "Forbidden"
+      security:
+      - resto_auth:
+        - "write:products"
+  /orders/detail/{orderId}:
+    get:
+      tags:
+      - "orders"
+      summary: "Get the details of an order"
+      description: ""
+      operationId: "getDetailOrder"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "orderId"
+        description: "Order Id"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+              $ref: "#/definitions/Order_Detail"
+        204:
+          description: "No content"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Order not found"
+      security:
+      - resto_auth:
+        - "read:orders"
+  /user:
+    post:
+      tags:
+      - "user"
+      summary: "Create user"
+      description: ""
+      operationId: "createUser"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Created user object that needs to be added to the restaurant"
+        required: true
+        schema:
+          $ref: "#/definitions/User_New"
+      responses:
+        200:
+          description: "Created"
+          schema:
+            type: "object"
+            properties:
+              userId:
+                type: "number"
+                example: 78
+        400:
+          description: "Missing or wrong arguments"
+          schema:
+            type: "object"
+            properties:
+              error:
+                type: "string"
+                example: "The name of the user is required"
+        409:
+          description: "Username already exists"
+      security:
+      - resto_auth:
+        - "write:user"
+    get:
+      tags:
+      - "user"
+      summary: "List of users created in the system"
+      description: ""
+      operationId: "getUsers"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "header"
+        name: "authorization"
+        description: "Authentication Token"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/User_Registered"
+        204:
+          description: "No content"
+      security:
+      - resto_auth:
+        - "read:user"
+  /user/login:
+    post:
+      tags:
+      - "user"
+      summary: "Logs user into the restaurant"
+      description: ""
+      operationId: "loginUser"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "credentials"
+        in: "body"
+        description: "The username and pasword for login"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            username:
+              type: "string"
+              example: "queen_freddie"
+            password:
+              type: "string"
+              example: "xxxxx"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "string"
+            example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxODUxMzIxNSIsIm5hbWUiOiJxdWVlbl9mcmVkZGllIiwiaWF0IjoxNTE2MjM5MDIyfQ.czi4yMBPYKvnKgjlI395qroTCE38nCVipYMsXXfQdFg"
+          headers:
+            X-Expires-After:
+              type: "string"
+              format: "date-time"
+              description: "date in UTC when token expires"
+        "400":
+          description: "Invalid username/password supplied"
+      security:
+      - resto_auth:
+        - "read:user"
+securityDefinitions:
+  resto_auth:
+    type: "oauth2"
+    authorizationUrl: "http://localhost:8080/v1/users/login"
+    flow: "implicit"
+    scopes:
+      write:products: "create and modify products in the restaurant"
+      read:products: "read the products created in the restaurant"
+      write:orders: "create and modify orders in the restaurant"
+      read:orders: "read the orders created in the restaurant"
+      read:user: "read the users created in the restaurant"
+      write:user: "create users in the restaurant"
+definitions:
+  Product:
+    type: "object"
+    required: 
+      - "product_name"
+      - "product_price"
+      - "product_photo"
+    properties:
+      product_name:
+        type: "string"
+        example: "Chicken Pasta"
+      product_price:
+        type: "number"
+        example: 20000
+      product_photo:
+        type: "string"
+        example: "https://www.budgetbytes.com/Cajun-Chicken-Pasta-V1.jpg"
+  Product_Created:
+    type: "object"
+    required: 
+      - "product_name"
+      - "product_price"
+      - "product_photo"
+    properties:
+      product_id:
+        type: "number"
+        example: 16
+      product_name:
+        type: "string"
+        example: "Chicken Pasta"
+      product_price:
+        type: "number"
+        example: 20000
+      product_photo:
+        type: "string"
+        example: "https://www.budgetbytes.com/Cajun-Chicken-Pasta-V1.jpg"
+  Order_New:
+    type: "object"
+    required:
+      - "user"
+      - "products"
+      - "payment_type"
+    properties:
+      user_id:
+        type: "number"
+        example: 3
+      products:
+        type: "array"
+        items:
+          $ref: '#/definitions/Selected_Product'
+      payment_type:
+        type: "string"
+        example: "card"
+        enum: 
+          - "cash"
+          - "card"
+  Selected_Product:
+    type: object
+    required: 
+      - "product_id"
+      - "quantity"
+    properties:
+      product_id:
+        type: "number"
+        example: 45
+      quantity:
+        type: "number"
+        example: 3
+  Orders_Created:
+    type: "object"
+    properties:
+      order_id:
+        type: "number"
+        example: 12
+      order_status:
+        type: "string"
+        example: "confirmed"
+        enum: 
+          - "new"
+          - "confirmed"
+          - "preparing"
+          - "sent"
+          - "delivered"
+          - "canceled"
+      order_time:
+        type: "string"
+        example: "13:22:10"
+      order_description:
+        type: "string"
+        example: "3xHamClas"
+      payment_type:
+        type: "string"
+        example: "card"
+        enum: 
+          - "cash"
+          - "card"
+      order_amount:
+        type: "number"
+        example: 660
+      username:
+        type: "string"
+        example: "Freddie Mercury"
+      address:
+        type: "string"
+        example: "81 Conrad Plain"
+      
+  Order_Detail:
+    type: "object"
+    properties:
+      order_id:
+        type: "number"
+        example: 18
+      order_status:
+        type: "string"
+        example: "confirmed"
+        enum: 
+          - "new"
+          - "confirmed"
+          - "preparing"
+          - "sent"
+          - "delivered"
+          - "canceled"
+      products:
+        type: "array"
+        items:
+          $ref: '#/definitions/Selected_Product'
+      payment_type:
+        type: "string"
+        example: "cash"
+        enum: 
+          - "cash"
+          - "card"
+      order_amount:
+        type: "number"
+        example: 860
+      address:
+        type: "string"
+        example: "026 Harber Port"
+      username:
+        type: "string"
+        example: "queen_freddie"
+      user_fullname:
+        type: "string"
+        example: "Freddie Mercury"
+      email:
+        type: "string"
+        example: "freddiemercury@gmail.com"
+      phone_number:
+        type: "string"
+        example: "+44 7712345678"
+
+        
+  Order_Status:
+    type: "object"
+    required:
+      - "status"
+    properties:
+      status:
+        type: "string"
+        description: "Order status"
+        enum:
+         - "new"
+         - "confirmed"
+         - "preparing"
+         - "sent"
+         - "delivered"
+         - "canceled"
+  User_New:
+    type: "object"
+    required: 
+      - "username"
+      - "name"
+      - "email"
+      - "phone"
+      - "address"
+      - "password"
+      - "is_admin"
+    properties:
+      username:
+        type: "string"
+        example: "queen_freddie"
+      name: 
+        type: "string"
+        example: "Freddie Mercury"
+      email:
+        type: "string"
+        example: "freddiemercury@gmail.com"
+      phone:
+        type: "string"
+        example: "+44 7712345678"
+      address:
+        type: "string"
+        example: "026 Harber Port"
+      password:
+        type: "string"
+        example: "xxxxxx"
+      is_admin:
+        type: "integer"
+        minimum: 0
+        maximum: 1
+  User_Registered:
+    type: "object"
+    required: 
+      - "username"
+      - "name"
+      - "email"
+      - "phone"
+      - "address"
+      - "password"
+      - "is_admin"
+    properties:
+      user_id:
+        type: "number"
+        example: 14
+      username:
+        type: "string"
+        example: "queen_freddie"
+      name: 
+        type: "string"
+        example: "Freddie Mercury"
+      email:
+        type: "string"
+        example: "freddiemercury@gmail.com"
+      phone:
+        type: "string"
+        example: "+44 7712345678"
+      address:
+        type: "string"
+        example: "026 Harber Port"
+      password:
+        type: "string"
+        example: "xxxxxx"
+      is_admin:
+        type: "integer"
+        minimum: 0
+        maximum: 1
