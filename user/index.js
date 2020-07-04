@@ -206,6 +206,40 @@ function validateUserData(req, res, next) {
 }
 
 /**
+ * Function to validate login data
+ * @param  req
+ * @param  res
+ * @param  next
+ */
+function validateLoginData(req, res, next) {
+  const { user, password } = req.body;
+  const errors = validateLoginDataComplete(user, password);
+  if (!errors.length) {
+    next();
+  } else {
+    const missingParameters = errors.join(", ");
+    res.status(400).send({
+      message: `This parameters are required:  ${missingParameters}`,
+    });
+  }
+}
+
+/**
+ * Function to validate if the user information to login is complete
+ * @param user
+ * @param  password
+ */
+function validateLoginDataComplete(user, password) {
+  let missingParameters = [];
+  if (!user || !/\S/.test(user)) {
+    missingParameters.push("user (username or email)");
+  }
+  if (!password || !/\S/.test(password)) {
+    missingParameters.push("password");
+  }
+  return missingParameters;
+}
+/**
  * Function to validate if user information is complete
  * @param req
  */
@@ -238,7 +272,7 @@ function validateUserDataComplete(req) {
   if (!password || !/\S/.test(password)) {
     missingParameters.push("password");
   }
-  if (!is_admin || !/\S/.test(is_admin)) {
+  if (is_admin == null || is_admin == undefined) {
     missingParameters.push("is_admin");
   }
   return missingParameters;
@@ -252,4 +286,5 @@ module.exports = {
   validateUserData,
   findUserById,
   getUserById,
+  validateLoginData,
 };

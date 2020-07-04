@@ -19,6 +19,7 @@ const {
   findUser,
   validateUserData,
   findUserById,
+  validateLoginData,
 } = require("../user");
 
 const { loginUser, validateAuthentication, validateAdmin } = require("../auth");
@@ -128,10 +129,16 @@ server.get(
   }
 );
 
-server.post("/v1/users/login", findUser, loginUser, (req, res) => {
-  const { token } = req;
-  res.status(200).json(token);
-});
+server.post(
+  "/v1/users/login",
+  validateLoginData,
+  findUser,
+  loginUser,
+  (req, res) => {
+    const { token } = req;
+    res.status(200).json(token);
+  }
+);
 
 //order enpoints
 server.post(
