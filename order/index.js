@@ -164,11 +164,11 @@ function getOrderDetails(req, res, next) {
  * @param next
  */
 function updateOrderStatus(req, res, next) {
-  const id = req.params.id;
+  const orderId = req.params.orderId;
   const { order_status } = req.body;
   const command = "UPDATE orders SET status = ? WHERE id = ? ";
   sequelize
-    .query(command, { raw: true, replacements: [order_status, id] })
+    .query(command, { raw: true, replacements: [order_status, orderId] })
     .then(() => {
       req.registeredOrder[0].status = order_status;
       next();

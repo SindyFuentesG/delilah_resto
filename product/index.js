@@ -128,7 +128,7 @@ function deleteProduct(req, res, next) {
 function updateProduct(req, res, next) {
   const { product } = req;
   const newProperties = req.body;
-  const id = req.params.id;
+  const productId = req.params.productId;
   const updatedProduct = productChanges(product.data[0], newProperties);
   const { name, price, photo } = updatedProduct;
   const command =
@@ -136,7 +136,7 @@ function updateProduct(req, res, next) {
   sequelize
     .query(command, {
       raw: true,
-      replacements: [name, price, photo, id],
+      replacements: [name, price, photo, productId],
     })
     .then((response) => {
       req.updatedProduct = updatedProduct;
